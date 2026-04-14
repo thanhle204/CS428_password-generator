@@ -1,0 +1,21 @@
+{
+  "description": "DEMO ONLY — Unencrypted credit card vault (plaintext)",
+  "cards": [
+    {
+      "nickname": "Personal Card",
+      "holder": "Chanakya",
+      "number": "5345641231365654",
+      "expiry": "01/30",
+      "cvv": "123",
+      "provider": "Mastercard"
+    },
+    {
+      "nickname": "Business Card",
+      "holder": "Chanakya",
+      "number": "4265468497496545",
+      "expiry": "12/32",
+      "cvv": "123",
+      "provider": "Visa"
+    }
+  ]
+}
