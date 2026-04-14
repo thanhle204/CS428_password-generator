@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Secure Password Generator</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="panel" aria-label="Password generator">
+        <header class="panel__header">
+          <p class="kicker">Inspired by Bitwarden</p>
+          <h1>Secure Password Generator</h1>
+          <p class="subhead">Generate random passwords and passphrases with secure defaults.</p>
+        </header>
+
+        <nav class="tab-bar" aria-label="Features">
+          <button class="tab tab--active" data-tab="generator">Password Generator</button>
+          <button class="tab" data-tab="password-vault">Password Vault</button>
+          <button class="tab" data-tab="vault">Credit Card Vault</button>
+          <button class="tab" data-tab="autofill">Autofill Demo</button>
+        </nav>
+
+        <div id="generatorTab">
+
+        <section class="output" aria-live="polite">
+          <label for="generatedValue">Generated value</label>
+          <div class="output__row">
+            <input id="generatedValue" type="text" readonly spellcheck="false" autocomplete="off" />
+            <button id="copyBtn" class="btn btn--ghost" type="button">Copy</button>
+            <button id="saveBtn" class="btn btn--ghost" type="button">Save Password</button>
+            <button id="regenerateBtn" class="btn" type="button">Regenerate</button>
+          </div>
+          <p id="copyStatus" class="helper" role="status">Ready.</p>
+          <form id="saveForm" class="save-form hidden" aria-label="Save generated password">
+            <label for="saveWebsite">Website</label>
+            <input id="saveWebsite" type="text" autocomplete="url" placeholder="example.com" required />
+
+            <label for="saveUsername">Username</label>
+            <input id="saveUsername" type="text" autocomplete="username" placeholder="you@example.com" required />
+
+            <label for="savePassword">Password</label>
+            <input id="savePassword" type="text" readonly />
+
+            <div class="save-form__actions">
+              <button id="confirmSaveBtn" class="btn" type="submit">Save</button>
+              <button id="cancelSaveBtn" class="btn btn--ghost" type="button">Cancel</button>
+            </div>
+          </form>
+        </section>
+
+        <section class="strength" aria-label="Password strength">
+          <div class="strength__top">
+            <span>Strength</span>
+            <strong id="strengthLabel">-</strong>
+          </div>
+          <div class="meter" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+            <div id="meterFill" class="meter__fill"></div>
+          </div>
+          <p class="helper"><span id="entropyBits">0.0</span> bits of entropy</p>
+          <p id="strengthHint" class="hint">Increase length for the biggest security gain.</p>
+        </section>
+
+        <section class="controls" aria-label="Generator options">
+          <fieldset class="group">
+            <legend>Mode</legend>
+            <label class="choice"><input type="radio" name="mode" value="password" checked /> Password</label>
+            <label class="choice"><input type="radio" name="mode" value="passphrase" /> Passphrase</label>
+          </fieldset>
+
+          <div class="group">
+            <div class="slider-head">
+              <label for="lengthRange" id="lengthLabel">Length</label>
+              <output id="lengthValue" for="lengthRange">16</output>
+            </div>
+            <input id="lengthRange" type="range" min="4" max="64" value="16" />
+            <p id="lengthHint" class="helper">Longer passwords improve entropy more than adding symbols alone.</p>
+          </div>
+
+          <fieldset id="passwordOptions" class="group">
+            <legend>Characters</legend>
+            <label class="choice"><input id="includeUppercase" type="checkbox" checked /> Uppercase (A-Z)</label>
+            <label class="choice"><input id="includeLowercase" type="checkbox" checked /> Lowercase (a-z)</label>
+            <label class="choice"><input id="includeNumbers" type="checkbox" checked /> Numbers (0-9)</label>
+            <label class="choice"><input id="includeSpecial" type="checkbox" checked /> Special (!@#$%^&*)</label>
+            <label class="choice"><input id="avoidAmbiguous" type="checkbox" /> Avoid ambiguous (l, I, O, 0, 1, |)</label>
+          </fieldset>
+
+          <fieldset id="passphraseOptions" class="group hidden">
+            <legend>Passphrase</legend>
+            <label class="choice"><input id="capitalizeWords" type="checkbox" checked /> Capitalize each word</label>
+            <label class="choice"><input id="appendNumber" type="checkbox" /> Append random number</label>
+            <label class="choice" for="separatorSelect">Separator
+              <select id="separatorSelect">
+                <option value="-">Hyphen (-)</option>
+                <option value=" ">Space</option>
+                <option value="_">Underscore (_)</option>
+                <option value=".">Dot (.)</option>
+              </select>
+            </label>
+          </fieldset>
+        </section>
+        </div>
+
+        <div id="passwordVaultTab" class="hidden">
+          <section id="pwVaultLock" class="vault-section">
+            <h2 class="vault-title">Password Vault</h2>
+            <p class="helper">Enter a master password to encrypt and protect your saved passwords.</p>
+            <div class="vault-unlock-row">
+              <input id="pwMasterPassword" type="password" placeholder="Master password" autocomplete="off" />
+              <button id="unlockPwVaultBtn" class="btn" type="button">Unlock</button>
+            </div>
+            <p id="pwVaultStatus" class="helper" role="status"></p>
+          </section>
+
+          <section id="pwVaultContent" class="vault-section hidden">
+            <div class="vault-header">
+              <h2 class="vault-title">Saved Passwords</h2>
+              <button id="lockPwVaultBtn" class="btn btn--ghost btn--sm" type="button">Lock Vault</button>
+            </div>
+            <div id="passwordRecordList" class="password-list"></div>
+            <p id="noPasswordRecords" class="helper center">No passwords saved yet.</p>
+          </section>
+        </div>
+
+        <div id="vaultTab" class="hidden">
+          <section id="vaultLock" class="vault-section">
+            <h2 class="vault-title">Credit Card Vault</h2>
+            <p class="helper">Enter a master password to encrypt and protect your stored cards.</p>
+            <div class="vault-unlock-row">
+              <input id="masterPassword" type="password" placeholder="Master password" autocomplete="off" />
+              <button id="unlockVaultBtn" class="btn" type="button">Unlock</button>
+            </div>
+            <p id="vaultStatus" class="helper" role="status"></p>
+          </section>
+
+          <section id="vaultContent" class="vault-section hidden">
+            <div class="vault-header">
+              <h2 class="vault-title">Your Cards</h2>
+              <button id="lockVaultBtn" class="btn btn--ghost btn--sm" type="button">Lock Vault</button>
+            </div>
+
+            <button id="showCardFormBtn" class="btn btn--ghost btn--full" type="button">+ Add New Card</button>
+            <div id="cardFormWrapper" class="card-form-wrapper hidden">
+              <form id="addCardForm" class="card-form">
+                <div class="form-field">
+                  <label for="cardNickname">Nickname</label>
+                  <input id="cardNickname" type="text" placeholder="e.g. Personal Visa" autocomplete="off" />
+                </div>
+                <div class="form-field">
+                  <label for="cardHolder">Cardholder Name</label>
+                  <input id="cardHolder" type="text" placeholder="Full name on card" autocomplete="off" required />
+                </div>
+                <div class="form-field">
+                  <label for="cardNumber">Card Number</label>
+                  <div class="card-number-row">
+                    <input id="cardNumber" type="text" placeholder="1234 5678 9012 3456" maxlength="19" autocomplete="off" required />
+                    <span id="cardProviderBadge" class="provider-badge"></span>
+                  </div>
+                  <p id="cardNumberHint" class="field-error hidden" role="alert"></p>
+                </div>
+                <div class="form-row">
+                  <div class="form-field">
+                    <label for="cardExpiry">Expiry (MM/YY)</label>
+                    <input id="cardExpiry" type="text" placeholder="MM/YY" maxlength="5" autocomplete="off" required />
+                    <p id="cardExpiryHint" class="field-error hidden" role="alert"></p>
+                  </div>
+                  <div class="form-field">
+                    <label for="cardCVV">CVV</label>
+                    <input id="cardCVV" type="password" placeholder="***" maxlength="4" autocomplete="off" required />
+                    <p id="cardCVVHint" class="field-error hidden" role="alert"></p>
+                  </div>
+                </div>
+                <div class="form-actions">
+                  <button type="submit" class="btn btn--full">Save Card</button>
+                  <button id="cancelCardBtn" type="button" class="btn btn--ghost btn--full">Cancel</button>
+                </div>
+              </form>
+            </div>
+
+            <div id="cardList" class="card-list"></div>
+            <p id="noCards" class="helper center">No cards stored yet.</p>
+
+            <div id="exportButtons" class="export-row hidden">
+              <button id="exportEncBtn" class="btn btn--ghost btn--sm" type="button">Download Encrypted</button>
+              <button id="exportDecBtn" class="btn btn--ghost btn--sm" type="button">Download Decrypted (Demo)</button>
+            </div>
+          </section>
+        </div>
+
+        <div id="autofillTab" class="hidden">
+          <section class="vault-section">
+            <h2 class="vault-title">Autofill Demo</h2>
+            <p class="helper">Simulate autofilling login forms on mock websites. Unlock the Password Vault and save credentials for google.com, youtube.com, or facebook.com to see autofill in action.</p>
+
+            <div id="afVaultWarning" class="af-vault-warning hidden">
+              Password Vault is locked. Unlock it first to use autofill.
+            </div>
+
+            <div id="afSiteGrid" class="af-site-grid">
+              <button class="af-site-card" data-site="gmail">
+                <div class="af-site-icon" style="background:#EA4335;color:#fff;">G</div>
+                <strong>Gmail</strong>
+                <span class="af-site-url">mail.google.com</span>
+              </button>
+              <button class="af-site-card" data-site="youtube">
+                <div class="af-site-icon" style="background:#FF0000;color:#fff;">&#9654;</div>
+                <strong>YouTube</strong>
+                <span class="af-site-url">youtube.com</span>
+              </button>
+              <button class="af-site-card" data-site="facebook">
+                <div class="af-site-icon" style="background:#1877F2;color:#fff;">f</div>
+                <strong>Facebook</strong>
+                <span class="af-site-url">facebook.com</span>
+              </button>
+            </div>
+
+            <div id="afMockPage" class="hidden">
+              <button id="afBackBtn" class="btn btn--ghost btn--sm" type="button">&larr; Back to sites</button>
+              <div id="afMockFrame" class="af-mock-frame"></div>
+            </div>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>
